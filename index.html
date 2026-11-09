@@ -1,0 +1,292 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>健身計畫</title>
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#020617">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iI2ZmZmZmZiIvPjwvc3ZnPg==">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iI2ZmZmZmZiIvPjwvc3ZnPg==">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        /* Prevent elastic scroll and pull-to-refresh on mobile browsers */
+        html {
+            overscroll-behavior: none;
+            overscroll-behavior-y: none;
+        }
+        body {
+            position: fixed;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            overscroll-behavior: none;
+            overscroll-behavior-y: none;
+            background-color: #020617;
+        }
+        #root {
+            height: 100%;
+            overflow-y: auto;
+            overscroll-behavior: none;
+            overscroll-behavior-y: none;
+            -webkit-overflow-scrolling: touch;
+        }
+        input:focus {
+            outline: none;
+        }
+
+        /* --- Smooth Animations (Optimized) --- */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        
+        @keyframes slideInLeft {
+            from { transform: translateX(-20%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.92); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes modalPop {
+            0% { opacity: 0; transform: scale(0.95) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        
+        @keyframes modalPopOut {
+            0% { opacity: 1; transform: scale(1) translateY(0); }
+            100% { opacity: 0; transform: scale(0.95) translateY(20px); }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        
+        @keyframes slideDownOut {
+            from { transform: translateY(0); opacity: 1; }
+            to { transform: translateY(100%); opacity: 0; }
+        }
+
+        /* 
+           Performance Optimization:
+           1. Use 'both' for fill-mode to ensure start state is applied during delay (prevents flash).
+           2. Use 'will-change' to promote layers to GPU.
+           3. UNIFIED DURATION: 0.4s for all animations.
+        */
+        .animate-fade-in { 
+            animation: fadeIn 0.4s ease-out both; 
+            will-change: opacity;
+        }
+        .animate-fade-out { 
+            animation: fadeOut 0.4s ease-out both; 
+            will-change: opacity;
+        }
+        
+        .animate-fade-in-up { 
+            animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; 
+            will-change: transform, opacity;
+        }
+        .animate-slide-in-right { 
+            animation: slideInRight 0.4s cubic-bezier(0.25, 1, 0.5, 1) both; 
+            will-change: transform;
+        }
+        .animate-slide-in-left { 
+            animation: slideInLeft 0.4s cubic-bezier(0.25, 1, 0.5, 1) both; 
+            will-change: transform, opacity;
+        }
+        
+        .animate-scale-in { 
+            animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; 
+            will-change: transform, opacity;
+        }
+        .animate-modal-pop { 
+            animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; 
+            will-change: transform, opacity;
+        }
+        .animate-modal-pop-out { 
+            animation: modalPopOut 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; 
+            will-change: transform, opacity;
+        }
+        
+        .animate-slide-up { 
+            animation: slideUp 0.4s cubic-bezier(0.32, 0.72, 0, 1) both; 
+            will-change: transform;
+        }
+        .animate-slide-down-out { 
+            animation: slideDownOut 0.4s cubic-bezier(0.32, 0.72, 0, 1) both; 
+            will-change: transform, opacity;
+        }
+
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+            animation: spin-slow 8s linear infinite;
+        }
+
+        @keyframes bounce-subtle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+        .animate-bounce-subtle {
+            animation: bounce-subtle 3s ease-in-out infinite;
+        }
+
+        /* Stagger helpers */
+        .stagger-1 { animation-delay: 100ms; }
+        .stagger-2 { animation-delay: 200ms; }
+        .stagger-3 { animation-delay: 300ms; }
+        
+        /* Utility for smooth height transition - Unified to 0.4s */
+        .transition-height {
+            transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Accordion transition for smooth expand and collapse */
+        .accordion-wrapper {
+            display: grid;
+            transition: grid-template-rows 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+            will-change: grid-template-rows, opacity;
+        }
+        .accordion-wrapper.collapsed {
+            grid-template-rows: 0fr;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .accordion-wrapper.expanded {
+            grid-template-rows: 1fr;
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .accordion-inner {
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        /* Glassmorphism for better visuals */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        /* Sortable Ghost Style */
+        .sortable-ghost {
+            opacity: 0.4;
+            background-color: #1e293b; /* slate-800 */
+        }
+        .sortable-drag {
+            cursor: grabbing;
+        }
+    </style>
+
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans">
+    <div id="root"></div>
+    <div id="global-error-display" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#090d16; color:#f8fafc; padding:2rem; font-family:monospace; z-index:999999; overflow-y:auto;">
+      <h1 style="color:#ef4444; font-size:1.5rem; font-weight:bold; margin-bottom:1rem; border-bottom:1px solid #334155; padding-bottom:0.5rem;">應用程式啟動失敗 / Startup Failure</h1>
+      <p style="margin-bottom:1rem; color:#94a3b8;">瀏覽器或腳本載入發生異常。您的本機健身資料與歷史紀錄仍安全保留在 IndexedDB 中，請擷圖此錯誤畫面並報告開發端。</p>
+      <pre id="error-log" style="background:#1e293b; padding:1.25rem; border-radius:1rem; overflow-x:auto; white-space:pre-wrap; word-break:break-all; border:1px solid #334155; line-height:1.6; font-size:13px; color:#f1f5f9;"></pre>
+      <button onclick="window.location.reload(true)" style="margin-top:1.5rem; background:#2563eb; color:white; border:none; padding:0.75rem 1.75rem; border-radius:0.75rem; font-weight:bold; cursor:pointer; font-size:14px; transition:all 0.2s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">重新整理網頁</button>
+    </div>
+    
+    <script>
+      // 1. 全局 JavaScript Runtime 與 Promise 錯誤擷取 (黑白畫面救星)
+      function showGlobalError(msg) {
+        var display = document.getElementById('global-error-display');
+        var log = document.getElementById('error-log');
+        if (display && log) {
+          log.textContent = (log.textContent ? log.textContent + '\n------------------\n' : '') + msg;
+          display.style.display = 'block';
+        }
+      }
+      window.addEventListener('error', function(event) {
+        showGlobalError('JS Error: ' + event.message + '\n來源: ' + event.filename + ':' + event.lineno + ':' + event.colno + '\n錯誤堆疊: ' + (event.error ? event.error.stack : '無堆疊資訊'));
+      });
+      window.addEventListener('unhandledrejection', function(event) {
+        var reason = event.reason;
+        var msg = 'Promise 異步錯誤: ';
+        if (reason instanceof Error) {
+          msg += reason.message + '\n堆疊: ' + reason.stack;
+        } else {
+          msg += String(reason);
+        }
+        showGlobalError(msg);
+      });
+
+      // 2. crypto.randomUUID 安全 polyfill (解決非 HTTPS 環境或部分行動瀏覽器不支援產生的閃退)
+      try {
+        if (typeof crypto === 'undefined') {
+          Object.defineProperty(window, 'crypto', {
+            value: {
+              randomUUID: function() {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                  var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                  return v.toString(16);
+                });
+              }
+            },
+            configurable: true,
+            writable: true
+          });
+        } else if (typeof crypto.randomUUID !== 'function') {
+          Object.defineProperty(crypto, 'randomUUID', {
+            value: function() {
+              return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+              });
+            },
+            configurable: true,
+            writable: true
+          });
+        }
+      } catch (e) {
+        console.warn('Unable to polyfill crypto.randomUUID safely:', e);
+      }
+
+      // 3. 確保清除任何過期或衝突的 Service Worker 與快取，徹底解決黑白畫面與版本快取問題
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          for (let registration of registrations) {
+            registration.unregister().then(() => {
+              console.log('SW Unregistered successfully');
+            });
+          }
+        });
+      }
+      if ('caches' in window) {
+        caches.keys().then((names) => {
+          for (let name of names) {
+            caches.delete(name);
+          }
+        });
+      }
+    </script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Is the user authenticated and accessing their own resource?
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId && request.auth.token.email == "qseft951753@gmail.com" && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Rules for individual collections matching current specifications
+    match /users/{userId} {
+      allow get, write: if isOwner(userId);
+
+      match /exercises/{exerciseId} {
+        allow get: if isOwner(userId) && isValidId(exerciseId);
+        allow list: if isOwner(userId);
+        allow write: if isOwner(userId) && isValidId(exerciseId);
+      }
+
+      match /combos/{comboId} {
+        allow get: if isOwner(userId) && isValidId(comboId);
+        allow list: if isOwner(userId);
+        allow write: if isOwner(userId) && isValidId(comboId);
+      }
+
+      match /history/{entryId} {
+        allow get: if isOwner(userId) && isValidId(entryId);
+        allow list: if isOwner(userId);
+        allow write: if isOwner(userId) && isValidId(entryId);
+      }
+    }
+  }
+}
